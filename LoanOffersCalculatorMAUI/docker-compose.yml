@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  loanofferscalculator.api:
+    image: ${DOCKER_REGISTRY-}loanofferscalculatorapi
+    build:
+      context: .
+      dockerfile: LoanOffersCalculator.API\Dockerfile

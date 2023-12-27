@@ -1,0 +1,24 @@
+﻿@page "/Step2"
+<div class="input-container">
+<center><h3>Select your assest price</h3></center>
+<hr />
+    
+<input type="range" class="form-range" id="customRange1" min="1000" max="100000"
+       onChange="document.getElementById('rangeval').innerText = document.getElementById('customRange1').value">
+       
+
+<center for="customRange1" class="form-label">
+    $<span style="font-size:large" id="rangeval">50000<!-- Default value --></span>
+</center>
+</div>
+@* <div class="form-group">
+<label for="formControlRange">Example Range input</label>
+<input type="range"
+           class="form-control-range"
+           id="formControlRange"
+>
+</div> *@
+
+@code {
+
+}

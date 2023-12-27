@@ -1,0 +1,22 @@
+﻿@page "/";
+@inject NavigationManager NavManager;
+<h3>AppLaunch</h3>
+
+Loading....
+
+@code {
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (App.RealmApp.CurrentUser != null)
+        {
+            //await new Task(null);
+            NavManager.NavigateTo("/dashboard");
+        }
+        else
+        {
+            NavManager.NavigateTo("/login");
+        }
+
+    }
+}

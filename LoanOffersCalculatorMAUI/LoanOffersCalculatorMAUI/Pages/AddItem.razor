@@ -1,0 +1,99 @@
+﻿@page "/addtodo"
+@using LoanOffersCalculatorMAUI.ViewModel
+@using LoanOffersCalculatorMAUI.Services
+@inject IAppService<ToDoModel> AppService;
+@inject NavigationManager NavManager;
+<h1>Add ToDo Item</h1>
+
+<div class="form-group">
+    <label>First Name</label>
+    <input @bind="name" class="form-control" placeholder="First Name" id="AddItemAutoTodoName" AutomationId="AddItemAutoTodoName">
+</div>
+<p>@emptyText</p>
+<button @onclick="AddToDoDetails" type="submit" class="mt-2 btn btn-primary" id="AddItemAutoTodoSubmit" AutomationId="AddItemAutoTodoSubmit">Submit</button>
+
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th></th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in todoList)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td><button id="@item.Name" AutomationId="@item.Name" class="btn btn-primary btn-xs delBtn" @onclick="() => DeleteItem(item)"> Delete </button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+
+@code {
+
+    private string name;
+    private string emptyText = "";
+    private List<ToDoModel> todoList = new List<ToDoModel>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        todoList = await AppService.GetAllAsync("Todo");
+        if (todoList.Count == 0)
+        {
+            emptyText = "Loading projects..";
+            await Task.Delay(2000);
+            todoList = await AppService.GetAllAsync("Todo");
+            emptyText = "No todos here. Add new Todo to get started 💪";
+        }
+
+    }
+
+    private async void DeleteItem(ToDoModel model)
+    {
+        if (await AppService.DeleteAsync("Todo/DeleteTodo/", model.Id))
+        {
+            await App.Current.MainPage.DisplayAlert("Record Deleted", "Record Deleted Successfully", "OK");
+            await OnInitializedAsync();
+            this.StateHasChanged();
+        }
+    }
+    private async void AddToDoDetails()
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return;
+        try
+        {
+            var model = new ToDoModel
+                {
+                    Id = "",
+                    Name = name,
+                    Partition = App.RealmApp.CurrentUser.Id,
+                    Owner = App.RealmApp.CurrentUser.Profile.Email,
+                };
+
+            if (await AppService.SaveAsync("Todo/CreateTodo", model) != null)
+            {
+                name = string.Empty;
+                await App.Current.MainPage.DisplayAlert("Record Added", "Record Added Successfully", "OK");
+            }
+            else
+            {
+                await App.Current.MainPage.DisplayAlert("Oops", "Error occured while adding.", "OK");
+            }
+            todoList = await AppService.GetAllAsync("Todo");
+            this.StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await Application.Current.MainPage.DisplayPromptAsync("Error", ex.Message);
+
+        }
+    }
+}

@@ -1,0 +1,151 @@
+﻿@page "/login"
+@layout CenteredCardLayout
+@using LoanOffersCalculatorMAUI.ViewModel
+@using CommunityToolkit.Mvvm.ComponentModel;
+@using System.ComponentModel.DataAnnotations;
+@using CommunityToolkit.Mvvm.Input;
+@using Realms.Sync;
+@inject NavigationManager NavManager;
+
+
+<EditForm Model="@loginModel" OnValidSubmit="LoginUser">
+    <DataAnnotationsValidator />
+
+    <div>
+        <br /><br />    
+    </div>
+    <div>
+        <h3 style="font-weight:bold; color:purple">Login to Access Application</h3>
+    </div>
+    <div>
+        <br />
+    </div>
+    <div class="col-12 row">
+        <input class="form-control col-12" @bind="loginModel.EmailText" placeholder="email address" />
+        <ValidationMessage For="@(()=> loginModel.EmailText)" />
+    </div>
+    <br />
+    <div class="col-12 row">
+        <input type="password" class="form-control col-12" @bind="loginModel.PasswordText" placeholder="password" />
+        <ValidationMessage For="@(()=> loginModel.PasswordText)" />
+    </div>
+    <br />
+    <div class="col-12 row">
+        <span class="col-12"></span>
+        <input type="submit" id="SignInBtn" AutomationId="SignInBtn" class="form-control col-6 btn btn-primary" value="Login" />
+    </div>
+    <br />
+</EditForm>
+<div class="mt-2 text-center">
+    <label class="text-danger">@ValidationErrors</label>
+    <a class="nav-link" @onclick="CreateAccount"> <span>Click here to create new account?</span></a>
+</div>
+<style type="text/css">
+    a:hover {
+        cursor: pointer;
+    }
+
+    a:active {
+        background-color: yellow;
+    }
+</style>
+
+@code {
+    LoginModel loginModel = new LoginModel()
+        {
+            EmailText = "disha.rai@v2solutions.com",
+            PasswordText = "Test@123456"
+        };
+
+    private string _spinnerClass = "";
+    private string ValidationErrors = "";
+
+    async void CreateAccount()
+    {
+        try
+
+        {
+            if (Validate().Result)
+            {
+                await LoanOffersCalculatorMAUI.App.RealmApp.EmailPasswordAuth.RegisterUserAsync(loginModel.EmailText, loginModel.PasswordText);
+                await LoginUser();
+            }
+
+
+        }
+        catch (Exception ex)
+        {
+            await Application.Current.MainPage.DisplayAlert("Error creating account!", "Error: " + ex.Message, "OK");
+        }
+
+    }
+
+    private async Task LoginUser()
+    {
+        try
+        {
+            _spinnerClass = "spinner-border spinner-border-sm";
+
+            var user = await LoanOffersCalculatorMAUI.App.RealmApp.LogInAsync(Credentials.EmailPassword(loginModel.EmailText, loginModel.PasswordText));
+
+            if (user != null)
+            {
+                //await Shell.Current.GoToAsync("///Main");
+                loginModel.EmailText = "";
+                loginModel.PasswordText = "";
+                NavManager.NavigateTo("/dashboard");
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("Oops", "Invalid username or password", "OK");
+
+                throw new Exception();
+            }
+
+            _spinnerClass = "";
+            this.StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await Application.Current.MainPage.DisplayAlert("Error Logging In", ex.Message, "OK");
+        }
+
+    }
+
+    private async Task<bool> Validate()
+
+    {
+
+        ValidationContext validationContext = new ValidationContext(this.loginModel);
+
+        List<ValidationResult> errors = new();
+
+        var isValid = Validator.TryValidateObject(this.loginModel, validationContext, errors, true);
+
+        if (!isValid)
+
+        {
+
+            var errorString = String.Join("\r\n", errors);
+
+            this.ValidationErrors = errorString;
+
+            //await Application.Current.MainPage.DisplayAlert("Validation error",
+
+            //  errorString, "OK");
+
+        }
+
+        else
+
+        {
+
+            this.ValidationErrors = null;
+
+        }
+        return isValid;
+    }
+
+
+
+}
