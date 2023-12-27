@@ -47,7 +47,7 @@ jobs:
      # https://docs.microsoft.com/en-us/dotnet/maui/windows/deployment/overview
      - name: Build Windows MSIX
        run: |
-          cd .\LoanOffersCalculatorMAUI\
+          cd .\LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI
             dotnet publish -f net6.0-windows10.0.19041.0 -c Release -p:RuntimeIdentifierOverride=win10-x64 --property:PublishDir='${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Windows'
           # dotnet publish -f net6.0-windows10.0.19041.0 -c Release -p:RuntimeIdentifierOverride=win10-x64 -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=true -p:PackageCertificateThumbprint="$thumbprint" -p:PackageCertificatePassword="786786"
           # msbuild /restore /t:Publish /p:TargetFramework=net6.0-windows10.0.19041 /p:TargetFrameworks="net6.0-windows10.0.19041;net6.0" /p:configuration=release /p:GenerateAppxPackageOnBuild=true /p:AppxPackageSigningEnabled=true /p:PackageCertificateThumbprint="$thumbprint" /p:PackageCertificatePassword="786786"
