@@ -15,7 +15,7 @@ env:
     
 jobs:
   buildWindows:
-    if: "contains(github.event.commits[0].message, '[win]')"
+   # if: "contains(github.event.commits[0].message, '[win]')"
     runs-on: windows-latest
     
     steps:
@@ -87,7 +87,7 @@ jobs:
          # package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Windows/'
          
   buildAndroid:
-      # if: "contains(github.event.head_commit.message, '[ci-android]')"
+      if: "contains(github.event.head_commit.message, '[ci-android]')"
       runs-on: windows-latest
 
       steps:
@@ -126,31 +126,31 @@ jobs:
 
         - uses: actions/upload-artifact@v2
           with:
-           name: artifacts-android
-           path: |
-                **\*.apk
-  deploy:
-        runs-on: windows-latest
-        needs: buildAndroid
-        environment:
-          name: 'Production'
-          url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
-        steps:
-          - name: Download artifact from build job
-            uses: actions/download-artifact@v3
-            with:
-              name: artifacts-android
-    
-          - name: Deploy to Azure Web App
-            id: deploy-to-webapp
-            uses: azure/webapps-deploy@v2
-            with:
-              app-name: 'locmaui'
-              slot-name: 'Production'
-              publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6C1A77B40E444124BB9F10955CE5A1FE }}
-              package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Android/'
-              # package: .
+            name: artifacts-android
+            path: |
+                   **\*.apk
+ # deploy:
+ #             runs-on: windows-latest
+  #            needs: buildAndroid
+   #           environment:
+    #            name: 'Production'
+     #           url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      #    
+       #       steps:
+        #        - name: Download artifact from build job
+         #         uses: actions/download-artifact@v3
+          #        with:
+           #         name: artifacts-android
+          
+            #    - name: Deploy to Azure Web App
+             #     id: deploy-to-webapp
+              #    uses: azure/webapps-deploy@v2
+               #   with:
+                #    app-name: 'locmaui'
+                 #   slot-name: 'Production'
+                  #  publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6C1A77B40E444124BB9F10955CE5A1FE }}
+                   # package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Android/'
+                    # package: .
 
             
         # # Store Android Signing Keystore and password in rets using base64 encoding
