@@ -25,30 +25,14 @@ jobs:
        uses: actions/setup-dotnet@v1
        with:
               dotnet-version: '${{env.DOTNETVERSION}}'
-
-          
+       
      - name: Install .NET MAUI
        shell: pwsh
        run: |
           & dotnet nuget locals all --clear
           & dotnet workload install maui --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json --source https://api.nuget.org/v3/index.json
           & dotnet workload install android ios maccatalyst tvos macos maui wasm-tools maui-maccatalyst --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json --source https://api.nuget.org/v3/index.json
-      
-     
-          
-#       - name: Build and Run UnitTests
-#         shell: bash
-#         run: |
-#           dotnet build <path to unit test csproj>
-#           dotnet test <path to unit test csproj> --no-build --verbosity normal
-    
-
-#     - name: NuGet to restore dependencies as well as project-specific tools that are specified in the project file
-#       run: nuget restore
-
-#     - name: Add msbuild to PATH
-#       uses: microsoft/setup-msbuild@v1.0.2
-     
+ 
       # https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil
       # commandline util to encode to base64 on windows
      - name: Create New-SelfSignedCertificate
@@ -73,11 +57,33 @@ jobs:
           name: artifacts-windows
           path: |
             **\*.msix
+  deploy: 
+    runs-on: windows-latest
+    needs: buildWindows
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
-     - uses: azure/webapps-deploy@v2
-       with:
-         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}  
-         app-name: ${{ env.AZURE_WEBAPP_NAME }}
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v3
+        with:
+          name: artifacts-windows
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'locmaui'
+          slot-name: 'Production'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6C1A77B40E444124BB9F10955CE5A1FE }}
+          package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Windows/'
+          # package: .
+
+     #- uses: azure/webapps-deploy@v2
+     #  with:
+     #    publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}  
+     #    app-name: ${{ env.AZURE_WEBAPP_NAME }}
          # package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Windows/'
          
   buildAndroid:
@@ -117,6 +123,35 @@ jobs:
           run: |
             cd LoanOffersCalculatorMAUI
             dotnet publish -f:net6.0-android -c:Release --property:PublishDir='${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Android'
+
+        - uses: actions/upload-artifact@v2
+          with:
+           name: artifacts-android
+           path: |
+                **\*.apk
+  deploy:
+        runs-on: windows-latest
+        needs: buildAndroid
+        environment:
+          name: 'Production'
+          url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    
+        steps:
+          - name: Download artifact from build job
+            uses: actions/download-artifact@v3
+            with:
+              name: artifacts-android
+    
+          - name: Deploy to Azure Web App
+            id: deploy-to-webapp
+            uses: azure/webapps-deploy@v2
+            with:
+              app-name: 'locmaui'
+              slot-name: 'Production'
+              publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6C1A77B40E444124BB9F10955CE5A1FE }}
+              package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Android/'
+              # package: .
+
             
         # # Store Android Signing Keystore and password in rets using base64 encoding
         # # https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil
@@ -132,20 +167,22 @@ jobs:
         #   shell: bash
         #   run: jarsigner -keystore android/release.decrypted.jks -storepass "${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" -signedjar ./android/app/build/outputs/bundle/release/app-release-signed.aab ./android/app/build/outputs/bundle/release/app-release.aab release
 
-  #       - name: Build and Run UnitTests
-  #         shell: bash
-  #         run: |
-  #           dotnet build <path to unit test csproj>
-  #           dotnet test <path to unit test csproj> --no-build --verbosity normal
+        #       - name: Build and Run UnitTests
+        #         shell: bash
+        #         run: |
+        #           dotnet build <path to unit test csproj>
+        #           dotnet test <path to unit test csproj> --no-build --verbosity normal
+      
+         #       - uses: actions/upload-artifact@v2
+         #         with:
+         #           name: artifacts-android
+         #           path: |
+         #             LoanOffersCalculatorMAUI\bin\Release\net6.0-android\publish\*.apk
 
- #       - uses: actions/upload-artifact@v2
- #         with:
- #           name: artifacts-android
- #           path: |
- #             LoanOffersCalculatorMAUI\bin\Release\net6.0-android\publish\*.apk
+  
 
-        - uses: azure/webapps-deploy@v2
-          with:
-           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}  
-           app-name: ${{ env.AZURE_WEBAPP_NAME }}
+      #  - uses: azure/webapps-deploy@v2
+      #    with:
+      #     publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}  
+      #     app-name: ${{ env.AZURE_WEBAPP_NAME }}
            # package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Android/'
