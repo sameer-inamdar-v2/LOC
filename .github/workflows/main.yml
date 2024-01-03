@@ -16,7 +16,7 @@ env:
 jobs:
   buildWindows:
    # if: "contains(github.event.commits[0].message, '[win]')"
-    runs-on: windows-latest
+    runs-on: windows-2022
     
     steps:
      - uses: actions/checkout@v2
@@ -42,15 +42,24 @@ jobs:
             $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=User Name" -KeyUsage DigitalSignature -FriendlyName "V2-Cert-Loan" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
             # Get thumbprint
             $thumbprint = $Cert.Thumbprint
+            $password = ConvertTo-SecureString -String 786786 -Force -AsPlainText
+            Export-PfxCertificate -cert "Cert:\CurrentUser\My\$thumbprint" -FilePath loc.pfx -Password $password
 
 
      # https://docs.microsoft.com/en-us/dotnet/maui/windows/deployment/overview
      - name: Build Windows MSIX
        run: |
           cd .\LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI
-            dotnet publish -f net6.0-windows10.0.19041.0 -c Release -p:RuntimeIdentifierOverride=win10-x64 --property:PublishDir='${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Windows'
+            dotnet publish -f net6.0-windows10.0.19041.0 -c Release 
           # dotnet publish -f net6.0-windows10.0.19041.0 -c Release -p:RuntimeIdentifierOverride=win10-x64 -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=true -p:PackageCertificateThumbprint="$thumbprint" -p:PackageCertificatePassword="786786"
           # msbuild /restore /t:Publish /p:TargetFramework=net6.0-windows10.0.19041 /p:TargetFrameworks="net6.0-windows10.0.19041;net6.0" /p:configuration=release /p:GenerateAppxPackageOnBuild=true /p:AppxPackageSigningEnabled=true /p:PackageCertificateThumbprint="$thumbprint" /p:PackageCertificatePassword="786786"
+
+  # https://docs.microsoft.com/en-us/windows/msix/desktop/azure-dev-ops
+     - name: Sign Windows App
+       shell: pwsh
+       run: |
+          '"C:\Program Files (x86)\Windows Kits\10\App Certification Kit\SignTool" sign /a /fd SHA256 /f loc.pfx /p ($password) LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI\bin\Release\net6.0-windows10.0.19041.0\win10-x64\AppPackages\LoanOffersCalculatorMAUI_1.0.0.1_Test\LoanOffersCalculatorMAUI_1.0.0.1_x64.msix'
+
       
      - uses: actions/upload-artifact@v2
        with:
