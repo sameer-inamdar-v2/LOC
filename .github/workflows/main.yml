@@ -100,7 +100,7 @@ jobs:
           app-name: 'locmaui'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6C1A77B40E444124BB9F10955CE5A1FE }}
-          package: ${{ github.workspace }}/artifacts-windows/**/*.msix
+          package: ${{ github.workspace }}/artifacts-windows/LoanOffersCalculatorMAUI/LoanOffersCalculatorMAUI/bin/Release/net6.0-windows10.0.19041.0/win10-x64/AppPackages/LoanOffersCalculatorMAUI_1.0.0.1_Test/LoanOffersCalculatorMAUI_1.0.0.1_x64.msix
           # package: .
 
      #- uses: azure/webapps-deploy@v2
