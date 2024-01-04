@@ -25,179 +25,26 @@ jobs:
        uses: actions/setup-dotnet@v1
        with:
               dotnet-version: '${{env.DOTNETVERSION}}'
-       
-     - name: Install .NET MAUI
-       shell: pwsh
-       run: |
-          & dotnet nuget locals all --clear
-          & dotnet workload install maui --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json --source https://api.nuget.org/v3/index.json
-          & dotnet workload install android ios maccatalyst tvos macos maui wasm-tools maui-maccatalyst --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json --source https://api.nuget.org/v3/index.json
- 
-      # https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil
-      # commandline util to encode to base64 on windows
-     - name: Create New-SelfSignedCertificate
-       shell: pwsh
-       id: secret-file
-       run: |
-            $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=User Name" -KeyUsage DigitalSignature -FriendlyName "V2-Cert-Loan" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
-            # Get thumbprint
-            $thumbprint = $Cert.Thumbprint
-            $password = ConvertTo-SecureString -String 786786 -Force -AsPlainText
-            Export-PfxCertificate -cert "Cert:\CurrentUser\My\$thumbprint" -FilePath loc.pfx -Password $password
 
 
-     # https://docs.microsoft.com/en-us/dotnet/maui/windows/deployment/overview
-     - name: Build Windows MSIX
-       run: |
-          cd .\LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI
-            dotnet publish -f net6.0-windows10.0.19041.0 -c Release 
-          # dotnet publish -f net6.0-windows10.0.19041.0 -c Release -p:RuntimeIdentifierOverride=win10-x64 -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=true -p:PackageCertificateThumbprint="$thumbprint" -p:PackageCertificatePassword="786786"
-          # msbuild /restore /t:Publish /p:TargetFramework=net6.0-windows10.0.19041 /p:TargetFrameworks="net6.0-windows10.0.19041;net6.0" /p:configuration=release /p:GenerateAppxPackageOnBuild=true /p:AppxPackageSigningEnabled=true /p:PackageCertificateThumbprint="$thumbprint" /p:PackageCertificatePassword="786786"
-
-  # https://docs.microsoft.com/en-us/windows/msix/desktop/azure-dev-ops
+     # https://docs.microsoft.com/en-us/windows/msix/desktop/azure-dev-ops
      - name: Sign Windows App
        shell: pwsh
        run: |
+        try {
+             cd "C:\Program Files (x86)\Windows Kits\10\App Certification Kit\"
+             ls
+            # .\signtool.exe sign /a /v /fd SHA256 /f  "$secretFile | select fullname" /p ($env:CERT_PASSWORD) LoanOffersCalculatorMAUI\bin\Release\net6.0-windows10.0.19041.0\win10-x64\AppPackages\LoanOffersCalculatorMAUI_1.0.0.1_TestLoanOffersCalculatorMAUI_1.0.0.1_x64.msix
+             }
+         catch {
+          Write-Error "An error occurred: $_"
+          exit 1
+         }
+
+       
            # Set the full path to signtool.exe
-           $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
-           # Use signtool with the full path
-           & $signtoolPath sign /a /fd SHA256 /f loc.pfx /p ($password) LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI\bin\Release\net6.0-windows10.0.19041.0\win10-x64\AppPackages\LoanOffersCalculatorMAUI_1.0.0.1_Test\LoanOffersCalculatorMAUI_1.0.0.1_x64.msix
+          # $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
+           
+
 
       
-     - uses: actions/upload-artifact@v2
-       with:
-          name: artifacts-windows
-          path: |
-            **\*.msix
- 
-      
-  deploy: 
-    runs-on: windows-latest
-    needs: buildWindows
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v3
-        with:
-          name: artifacts-windows
-          path: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Windows/'
-
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: 'locmaui'
-          slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6C1A77B40E444124BB9F10955CE5A1FE }}
-          package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Windows/'
-          # package: .
-
-     #- uses: azure/webapps-deploy@v2
-     #  with:
-     #    publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}  
-     #    app-name: ${{ env.AZURE_WEBAPP_NAME }}
-         # package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Windows/'
-         
-  buildAndroid:
-      if: "contains(github.event.head_commit.message, '[ci-android]')"
-      runs-on: windows-latest
-
-      steps:
-        - uses: actions/checkout@v2
-
-        - name: Setup .NET SDK ${{env.DOTNETVERSION}}
-          uses: actions/setup-dotnet@v1
-          with:
-            dotnet-version:  '${{env.DOTNETVERSION}}'
-
-        - name: List installed .NET info
-          shell: pwsh
-          run: dotnet --info
-
-        - name: Install .NET MAUI
-          shell: bash
-          run: |
-            dotnet nuget locals all --clear 
-            dotnet workload install maui --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json --source https://api.nuget.org/v3/index.json
-            dotnet workload install android ios maccatalyst tvos macos maui wasm-tools --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json --source https://api.nuget.org/v3/index.json
-        - uses: actions/setup-java@v2
-          with:
-            distribution: 'microsoft'
-            java-version: '11'
-            
-        - name: Restore nuget packages
-          run: |
-            dotnet restore LoanOffersCalculatorMAUI.sln
-
-          # https://docs.microsoft.com/en-us/dotnet/maui/android/deployment/overview
-        - name : Build Android App
-          shell: bash
-          run: |
-            cd LoanOffersCalculatorMAUI
-            dotnet publish -f:net6.0-android -c:Release --property:PublishDir='${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Android'
-
-        - uses: actions/upload-artifact@v2
-          with:
-            name: artifacts-android
-            path: |
-                   **\*.apk
- # deploy:
- #             runs-on: windows-latest
-  #            needs: buildAndroid
-   #           environment:
-    #            name: 'Production'
-     #           url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-      #    
-       #       steps:
-        #        - name: Download artifact from build job
-         #         uses: actions/download-artifact@v3
-          #        with:
-           #         name: artifacts-android
-          
-            #    - name: Deploy to Azure Web App
-             #     id: deploy-to-webapp
-              #    uses: azure/webapps-deploy@v2
-               #   with:
-                #    app-name: 'locmaui'
-                 #   slot-name: 'Production'
-                  #  publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6C1A77B40E444124BB9F10955CE5A1FE }}
-                   # package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Android/'
-                    # package: .
-
-            
-        # # Store Android Signing Keystore and password in rets using base64 encoding
-        # # https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil
-        # # commandline util to encode to base64 on windows
-        # - name: Extract Android signing key from env
-        #   shell: bash
-        #   run: |
-        #     echo "${{ secrets.RELEASE_KEYSTORE }}" > android/release.jks.base64
-        #     base64 -d android/release.jks.base64 > android/release.decrypted.jks
-
-        # # check android SDK paths etc in installed VM : https://github.com/actions/virtual-environments#available-environments
-        # - name: Sign dev build
-        #   shell: bash
-        #   run: jarsigner -keystore android/release.decrypted.jks -storepass "${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" -signedjar ./android/app/build/outputs/bundle/release/app-release-signed.aab ./android/app/build/outputs/bundle/release/app-release.aab release
-
-        #       - name: Build and Run UnitTests
-        #         shell: bash
-        #         run: |
-        #           dotnet build <path to unit test csproj>
-        #           dotnet test <path to unit test csproj> --no-build --verbosity normal
-      
-         #       - uses: actions/upload-artifact@v2
-         #         with:
-         #           name: artifacts-android
-         #           path: |
-         #             LoanOffersCalculatorMAUI\bin\Release\net6.0-android\publish\*.apk
-
-  
-
-      #  - uses: azure/webapps-deploy@v2
-      #    with:
-      #     publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}  
-      #     app-name: ${{ env.AZURE_WEBAPP_NAME }}
-           # package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Android/'
