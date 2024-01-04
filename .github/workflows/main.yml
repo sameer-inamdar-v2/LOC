@@ -60,7 +60,7 @@ jobs:
        shell: pwsh
        run: |
            cd .\LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI
-           $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\App Certification Kit\"
+           $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\App Certification Kit\signtool.exe"
            ls           
            # Set the full path to signtool.exe
            # $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\App Certification Kit\signtool.exe"
