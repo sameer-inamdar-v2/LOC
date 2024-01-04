@@ -91,7 +91,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: artifacts-windows
-          path: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Windows/'
+          path: ${{ github.workspace }}/artifacts-windows
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -100,7 +100,7 @@ jobs:
           app-name: 'locmaui'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6C1A77B40E444124BB9F10955CE5A1FE }}
-          package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Windows/'
+          package: ${{ github.workspace }}/artifacts-windows/**/*.msix
           # package: .
 
      #- uses: azure/webapps-deploy@v2
