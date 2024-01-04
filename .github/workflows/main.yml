@@ -32,6 +32,16 @@ jobs:
           & dotnet nuget locals all --clear
           & dotnet workload install maui --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json --source https://api.nuget.org/v3/index.json
           & dotnet workload install android ios maccatalyst tvos macos maui wasm-tools maui-maccatalyst --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json --source https://api.nuget.org/v3/index.json
+
+     # https://docs.microsoft.com/en-us/dotnet/maui/windows/deployment/overview
+     - name: Build Windows MSIX
+       run: |
+          cd .\LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI
+            dotnet publish -f net6.0-windows10.0.19041.0 -c Release 
+          # dotnet publish -f net6.0-windows10.0.19041.0 -c Release -p:RuntimeIdentifierOverride=win10-x64 -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=true -p:PackageCertificateThumbprint="$thumbprint" -p:PackageCertificatePassword="786786"
+          # msbuild /restore /t:Publish /p:TargetFramework=net6.0-windows10.0.19041 /p:TargetFrameworks="net6.0-windows10.0.19041;net6.0" /p:configuration=release /p:GenerateAppxPackageOnBuild=true /p:AppxPackageSigningEnabled=true /p:PackageCertificateThumbprint="$thumbprint" /p:PackageCertificatePassword="786786"
+
+
  
       # https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil
       # commandline util to encode to base64 on windows
@@ -47,25 +57,20 @@ jobs:
             Export-PfxCertificate -cert "Cert:\CurrentUser\My\$thumbprint" -FilePath loc.pfx -Password $password
 
 
-     # https://docs.microsoft.com/en-us/dotnet/maui/windows/deployment/overview
-     - name: Build Windows MSIX
-       run: |
-          cd .\LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI
-            dotnet publish -f net6.0-windows10.0.19041.0 -c Release 
-          # dotnet publish -f net6.0-windows10.0.19041.0 -c Release -p:RuntimeIdentifierOverride=win10-x64 -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=true -p:PackageCertificateThumbprint="$thumbprint" -p:PackageCertificatePassword="786786"
-          # msbuild /restore /t:Publish /p:TargetFramework=net6.0-windows10.0.19041 /p:TargetFrameworks="net6.0-windows10.0.19041;net6.0" /p:configuration=release /p:GenerateAppxPackageOnBuild=true /p:AppxPackageSigningEnabled=true /p:PackageCertificateThumbprint="$thumbprint" /p:PackageCertificatePassword="786786"
-
+    
   # https://docs.microsoft.com/en-us/windows/msix/desktop/azure-dev-ops
      - name: Sign Windows App
        shell: pwsh
        run: |
            cd .\LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI
+           ls  
            $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\App Certification Kit\signtool.exe"
-           ls           
+           & $signtoolPath sign /a /fd SHA256 /f loc.pfx /p (786786) bin\Release\net6.0-windows10.0.19041.0\win10-x64\AppPackages\LoanOffersCalculatorMAUI_1.0.0.1_Test\LoanOffersCalculatorMAUI_1.0.0.1_x64.msix
+                    
            # Set the full path to signtool.exe
            # $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\App Certification Kit\signtool.exe"
            # Use signtool with the full path
-           & $signtoolPath sign /a /fd SHA256 /f loc.pfx /p ($password) bin\Release\net6.0-windows10.0.19041.0\win10-x64\AppPackages\LoanOffersCalculatorMAUI_1.0.0.1_Test\LoanOffersCalculatorMAUI_1.0.0.1_x64.msix
+           
 
      - uses: actions/upload-artifact@v2
        with:
