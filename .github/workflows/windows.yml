@@ -76,7 +76,7 @@ jobs:
        with:
           name: artifacts-windows
           path: |
-            \*.msix
+            **\*.msix
  
       
   deploy: 
@@ -97,6 +97,11 @@ jobs:
         run: Start-Sleep -s 30
         shell: powershell
 
+      - name: List Contents of Artifacts Directory
+        run: |
+          ls -R ${{ github.workspace }}/artifacts-windows
+
+          
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
@@ -104,7 +109,7 @@ jobs:
           app-name: 'locmaui'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6C1A77B40E444124BB9F10955CE5A1FE }}
-          package: ${{ github.workspace }}/artifacts-windows/LoanOffersCalculatorMAUI_1.0.0.1_x64.msix
+          package: ${{ github.workspace }}/artifacts-windows/**/LoanOffersCalculatorMAUI_1.0.0.1_x64.msix
           # package: .
 
      #- uses: azure/webapps-deploy@v2
