@@ -1,4 +1,4 @@
-name: windowsCI
+name: androidCI
 
 on:
   push:
@@ -50,7 +50,7 @@ jobs:
         - name : Build Android App
           shell: bash
           run: |
-            cd .\LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI
+            cd LoanOffersCalculatorMAUI
             dotnet publish -f:net6.0-android -c:Release --property:PublishDir='${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Android'
 
         - uses: actions/upload-artifact@v2
