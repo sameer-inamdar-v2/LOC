@@ -70,7 +70,7 @@ jobs:
                   uses: actions/download-artifact@v3
                   with:
                     name: artifacts-android
-                    path: ${{ github.workspace }}/artifacts-android
+                    path: ${{ github.workspace }}\artifacts-android
 
                 - name: Sleep for 30 seconds
                   run: Start-Sleep -s 30
@@ -83,7 +83,7 @@ jobs:
                     app-name: 'loc1'
                     slot-name: 'Production'
                     publish-profile: ${{ env.AZUREAPPSERVICE_PUBLISHPROFILE }}
-                    package: ${{ github.workspace }}/artifacts-android/**/Android/com.companyname.loanofferscalculatormaui-Signed.apk
+                    package: ${{ github.workspace }}\artifacts-android\LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI\Android\com.companyname.loanofferscalculatormaui-Signed.apk
                     # package: .
 
             
