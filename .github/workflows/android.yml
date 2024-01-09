@@ -53,11 +53,14 @@ jobs:
             cd .\LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI
             dotnet publish -f:net6.0-android -c:Release --property:PublishDir='${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Android'
 
+        - name: Zip artifact for deployment
+          run: zip android-release.zip ./* -r
+        
         - uses: actions/upload-artifact@v2
           with:
             name: artifacts-android
             path: |
-                   **\*.apk
+                   android-release.zip
  deploy:
              runs-on: windows-latest
              needs: buildAndroid
@@ -70,7 +73,7 @@ jobs:
                   uses: actions/download-artifact@v3
                   with:
                     name: artifacts-android
-                    path: ${{ github.workspace }}\artifacts-android
+                    # path: ${{ github.workspace }}\artifacts-android
 
                 - name: Sleep for 30 seconds
                   run: Start-Sleep -s 30
@@ -83,7 +86,7 @@ jobs:
                     app-name: 'loc1'
                     slot-name: 'Production'
                     publish-profile: ${{ env.AZUREAPPSERVICE_PUBLISHPROFILE }}
-                    package: ${{ github.workspace }}\artifacts-android\LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI\Android\com.companyname.loanofferscalculatormaui-Signed.apk
+                    package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
                     # package: .
 
             
