@@ -83,7 +83,7 @@ jobs:
                     app-name: 'loc1'
                     slot-name: 'Production'
                     publish-profile: ${{ env.AZUREAPPSERVICE_PUBLISHPROFILE }}
-                    package: ${{ github.workspace }}/artifacts-android/**/*.apk
+                    package: ${{ github.workspace }}/artifacts-android/**/Android/com.companyname.loanofferscalculatormaui-Signed.apk
                     # package: .
 
             
