@@ -76,7 +76,7 @@ jobs:
        with:
           name: artifacts-windows
           path: |
-            **\Windows\**\LoanOffersCalculatorMAUI_1.0.0.1_x64.msix
+            **\LoanOffersCalculatorMAUI_1.0.0.1_x64.msix
  
       
   deploy: 
