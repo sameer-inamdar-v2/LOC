@@ -52,15 +52,14 @@ jobs:
           run: |
             cd .\LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI
             dotnet publish -f:net6.0-android -c:Release --property:PublishDir='${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Android'
-
-        - name: Zip artifact for deployment
-          run: zip android-release.zip ./* -r
+            
         
         - uses: actions/upload-artifact@v2
           with:
             name: artifacts-android
             path: |
-                   android-release.zip
+                    path: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Android/**'
+                    
  deploy:
              runs-on: windows-latest
              needs: buildAndroid
