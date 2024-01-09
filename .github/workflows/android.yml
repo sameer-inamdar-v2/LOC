@@ -51,14 +51,14 @@ jobs:
         - name : Build Android App
           run: |
             cd .\LoanOffersCalculatorMAUI\LoanOffersCalculatorMAUI
-            dotnet publish -f:net6.0-android -c:Release --property:PublishDir='${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Android'
+            dotnet publish -f:net6.0-android -c:Release --property:PublishDir='./Android'
             
         
         - uses: actions/upload-artifact@v2
           with:
             name: artifacts-android
             path: |
-                    path: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/Android/**'
+                  **\Android\com.companyname.loanofferscalculatormaui-Signed.apk
                     
  deploy:
              runs-on: windows-latest
