@@ -85,7 +85,7 @@ jobs:
                     app-name: 'loc1'
                     slot-name: 'Production'
                     publish-profile: ${{ env.AZUREAPPSERVICE_PUBLISHPROFILE }}
-                    package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/android/
+                    package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/android
                     # package: .
 
             
