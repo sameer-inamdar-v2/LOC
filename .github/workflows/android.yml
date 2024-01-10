@@ -16,7 +16,7 @@ env:
     
 jobs:
  buildAndroid:
-      #if: "contains(github.event.head_commit.message, '[ci-android]')"
+      if: "contains(github.event.head_commit.message, '[ci-android]')"
       runs-on: windows-2022
 
       steps:
@@ -85,7 +85,7 @@ jobs:
                     app-name: 'loc1'
                     slot-name: 'Production'
                     publish-profile: ${{ env.AZUREAPPSERVICE_PUBLISHPROFILE }}
-                    package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+                    package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/android/
                     # package: .
 
             
