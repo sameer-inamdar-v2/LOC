@@ -109,7 +109,7 @@ jobs:
           app-name: 'loc1'
           slot-name: 'Production'
           publish-profile: ${{ env.AZUREAPPSERVICE_PUBLISHPROFILE }}
-          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/windows
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
           # package: .
 
      #- uses: azure/webapps-deploy@v2
